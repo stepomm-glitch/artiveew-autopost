@@ -9,7 +9,11 @@ Only posts with status "approved" whose publish_at has passed are published.
 After publishing, post.json gets status "published", the media id and time.
 
 Env:
-  IG_ACCESS_TOKEN  Instagram user access token (Instagram API with Instagram Login)
+  IG_ACCESS_TOKEN  access token. Either a system-user token from the Meta business
+                   portfolio (starts with EAA, never expires) or an Instagram-login
+                   token (starts with IG).
+  IG_USER_ID       numeric Instagram account ID. Required for EAA tokens, which
+                   use graph.facebook.com; IG tokens can look it up themselves.
   IMAGE_BASE_URL   public base URL where posts/ is served, e.g.
                    https://raw.githubusercontent.com/<owner>/<repo>/main
   DRY_RUN=1        print what would happen without calling the API
@@ -23,7 +27,13 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-API = "https://graph.instagram.com/v21.0"
+VERSION = "v21.0"
+
+
+def api_base() -> str:
+    token = os.environ.get("IG_ACCESS_TOKEN", "")
+    host = "graph.instagram.com" if token.startswith("IG") else "graph.facebook.com"
+    return f"https://{host}/{VERSION}"
 ROOT = Path(__file__).resolve().parent.parent
 POSTS = ROOT / "posts"
 
@@ -31,7 +41,7 @@ POSTS = ROOT / "posts"
 def call(method, path, **params):
     params["access_token"] = os.environ["IG_ACCESS_TOKEN"]
     data = urllib.parse.urlencode(params).encode()
-    url = f"{API}/{path}"
+    url = f"{api_base()}/{path}"
     if method == "GET":
         req = urllib.request.Request(f"{url}?{data.decode()}")
     else:
@@ -95,7 +105,14 @@ def main():
     if not due:
         print("nothing due")
         return
-    user_id = "me" if dry else call("GET", "me", fields="user_id")["user_id"]
+    user_id = os.environ.get("IG_USER_ID", "").strip()
+    if not user_id:
+        if dry:
+            user_id = "me"
+        elif os.environ["IG_ACCESS_TOKEN"].startswith("IG"):
+            user_id = call("GET", "me", fields="user_id")["user_id"]
+        else:
+            sys.exit("IG_USER_ID is not set (needed for system-user tokens)")
     failed = False
     for meta_path, meta in due:
         try:

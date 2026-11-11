@@ -14,8 +14,8 @@ posts/002_alhambra_boabdil/
 - `published`: done; `media_id` is recorded
 
 ## Secrets (Settings → Secrets and variables → Actions)
-- `IG_ACCESS_TOKEN`: Instagram long-lived access token (Instagram API with Instagram Login)
-- `GH_PAT`: fine-grained token for this repo with Secrets read/write, used to refresh the Instagram token weekly
+- `IG_ACCESS_TOKEN`: system-user access token from the Meta app (Instagram API, Unified login). It does not expire.
+The Instagram account ID (not secret) is set in `.github/workflows/publish.yml` as `IG_USER_ID`.
 
 ## Test without posting
 Actions → "Publish approved posts" → Run workflow → tick "dry run".
