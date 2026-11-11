@@ -15,7 +15,7 @@ posts/002_alhambra_boabdil/
 
 ## Secrets (Settings → Secrets and variables → Actions)
 - `IG_ACCESS_TOKEN`: system-user access token from the Meta app (Instagram API, Unified login). It does not expire.
-- `IG_USER_ID`: the numeric Instagram account ID shown next to artiveew in the Meta app
+The Instagram account ID (not secret) is set in `.github/workflows/publish.yml` as `IG_USER_ID`.
 
 ## Test without posting
 Actions → "Publish approved posts" → Run workflow → tick "dry run".
