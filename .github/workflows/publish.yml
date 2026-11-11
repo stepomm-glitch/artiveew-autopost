@@ -2,7 +2,7 @@ name: Publish approved posts
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 minutes (UTC)
+    - cron: "*/10 * * * *"   # every 10 minutes (GitHub may start runs a few minutes late)
   workflow_dispatch:
     inputs:
       dry_run:

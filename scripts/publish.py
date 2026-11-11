@@ -5,7 +5,9 @@ Each post lives in posts/<id>/ with:
   caption.txt         caption exactly as it should appear
   post.json           {"status": "approved", "publish_at": "2026-11-10T20:00:00+09:00"}
 
-Only posts with status "approved" whose publish_at has passed are published.
+Status flow: draft (in progress) -> ready (finished, waiting for the owner's approval)
+-> approved (owner said yes) -> published. Only posts with status "approved" whose
+publish_at has passed are published; draft and ready posts are never touched.
 After publishing, post.json gets status "published", the media id and time.
 
 Env:
