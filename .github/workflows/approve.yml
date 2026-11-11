@@ -1,0 +1,40 @@
+name: Approve post
+
+on:
+  workflow_dispatch:
+    inputs:
+      post:
+        description: "Post folder or its number, e.g. s01"
+        required: true
+      publish_at:
+        description: "Optional new time, e.g. 2026-11-11T21:00:00+09:00 (blank keeps the planned time)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  approve:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Mark post approved
+        env:
+          POST: ${{ inputs.post }}
+          PUBLISH_AT: ${{ inputs.publish_at }}
+        run: python scripts/approve.py "$POST" "$PUBLISH_AT"
+      - name: Commit
+        run: |
+          git config user.name "artiveew-bot"
+          git config user.email "artiveew-bot@users.noreply.github.com"
+          git add posts
+          git commit -m "Approve ${{ inputs.post }}"
+          git push
