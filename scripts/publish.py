@@ -93,6 +93,10 @@ def main():
     base_url = os.environ.get("IMAGE_BASE_URL", "").rstrip("/")
     if not base_url:
         sys.exit("IMAGE_BASE_URL is not set")
+    if dry and os.environ.get("IG_ACCESS_TOKEN") and os.environ.get("IG_USER_ID"):
+        # read-only call so a dry run also proves the token and account ID work
+        info = call("GET", os.environ["IG_USER_ID"], fields="username")
+        print(f"token OK: @{info.get('username')}")
     now = dt.datetime.now(dt.timezone.utc)
     due = []
     for meta_path in sorted(POSTS.glob("*/post.json")):
