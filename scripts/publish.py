@@ -55,7 +55,7 @@ def call(method, path, **params):
         raise RuntimeError(f"{method} {path} failed: {e.code} {e.read().decode()[:500]}")
 
 
-def wait_ready(container_id, tries=30):
+def wait_ready(container_id, tries=60):
     for _ in range(tries):
         status = call("GET", container_id, fields="status_code").get("status_code")
         if status == "FINISHED":
@@ -67,9 +67,9 @@ def wait_ready(container_id, tries=30):
 
 
 def publish(post_dir: Path, base_url: str, user_id: str, dry: bool) -> str:
-    slides = sorted(p for p in post_dir.glob("*.jpg"))
+    slides = sorted(p for p in post_dir.iterdir() if p.suffix in (".jpg", ".mp4"))
     if not 2 <= len(slides) <= 10:
-        raise RuntimeError(f"{post_dir.name}: carousel needs 2-10 jpg slides, found {len(slides)}")
+        raise RuntimeError(f"{post_dir.name}: carousel needs 2-10 slides (jpg/mp4), found {len(slides)}")
     caption = (post_dir / "caption.txt").read_text(encoding="utf-8").strip()
     urls = [f"{base_url}/posts/{post_dir.name}/{urllib.parse.quote(p.name)}" for p in slides]
     if dry:
@@ -79,7 +79,10 @@ def publish(post_dir: Path, base_url: str, user_id: str, dry: bool) -> str:
         return "dry-run"
     children = []
     for u in urls:
-        c = call("POST", f"{user_id}/media", image_url=u, is_carousel_item="true")
+        if u.endswith(".mp4"):
+            c = call("POST", f"{user_id}/media", media_type="VIDEO", video_url=u, is_carousel_item="true")
+        else:
+            c = call("POST", f"{user_id}/media", image_url=u, is_carousel_item="true")
         children.append(c["id"])
     for c in children:
         wait_ready(c)
