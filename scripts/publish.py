@@ -68,8 +68,8 @@ def wait_ready(container_id, tries=60):
 
 def publish(post_dir: Path, base_url: str, user_id: str, dry: bool) -> str:
     slides = sorted(p for p in post_dir.iterdir() if p.suffix in (".jpg", ".mp4"))
-    if not 2 <= len(slides) <= 10:
-        raise RuntimeError(f"{post_dir.name}: carousel needs 2-10 slides (jpg/mp4), found {len(slides)}")
+    if not 2 <= len(slides) <= 20:
+        raise RuntimeError(f"{post_dir.name}: carousel needs 2-20 slides (jpg/mp4), found {len(slides)}")
     caption = (post_dir / "caption.txt").read_text(encoding="utf-8").strip()
     urls = [f"{base_url}/posts/{post_dir.name}/{urllib.parse.quote(p.name)}" for p in slides]
     if dry:
