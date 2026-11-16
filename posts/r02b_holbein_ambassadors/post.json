@@ -1,8 +1,10 @@
 {
   "type": "reel",
-  "status": "approved",
+  "status": "published",
   "publish_at": "2026-11-17T00:13:40+09:00",
   "approved_at": "2026-11-17T00:13:40+09:00",
   "thumb_offset_ms": 500,
-  "replaces": "r02_holbein_ambassadors"
+  "replaces": "r02_holbein_ambassadors",
+  "media_id": "17896941456682696",
+  "published_at": "2026-11-16T15:14:50.822275+00:00"
 }
