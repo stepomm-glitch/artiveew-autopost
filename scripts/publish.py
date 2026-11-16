@@ -4,6 +4,8 @@ Each post lives in posts/<id>/ with:
   01.jpg ... NN.jpg   carousel slides in order (JPEG, 1080x1350)
   caption.txt         caption exactly as it should appear
   post.json           {"status": "approved", "publish_at": "2026-11-10T20:00:00+09:00"}
+A reel post instead has reel.mp4 (1080x1920) and "type": "reel" in post.json
+(optional "thumb_offset_ms" picks the cover frame).
 
 Status flow: draft (in progress) -> ready (finished, waiting for the owner's approval)
 -> approved (owner said yes) -> published. Only posts with status "approved" whose
@@ -66,7 +68,26 @@ def wait_ready(container_id, tries=60):
     raise RuntimeError(f"container {container_id} not ready in time")
 
 
-def publish(post_dir: Path, base_url: str, user_id: str, dry: bool) -> str:
+def publish_reel(post_dir: Path, base_url: str, user_id: str, dry: bool, meta: dict) -> str:
+    video = post_dir / "reel.mp4"
+    if not video.exists():
+        raise RuntimeError(f"{post_dir.name}: reel needs reel.mp4")
+    caption = (post_dir / "caption.txt").read_text(encoding="utf-8").strip()
+    url = f"{base_url}/posts/{post_dir.name}/reel.mp4"
+    if dry:
+        print(f"[dry run] {post_dir.name}: reel {url}, caption {len(caption)} chars")
+        return "dry-run"
+    params = dict(media_type="REELS", video_url=url, caption=caption, share_to_feed="true")
+    if "thumb_offset_ms" in meta:
+        params["thumb_offset"] = str(meta["thumb_offset_ms"])
+    c = call("POST", f"{user_id}/media", **params)
+    wait_ready(c["id"], tries=120)
+    return call("POST", f"{user_id}/media_publish", creation_id=c["id"])["id"]
+
+
+def publish(post_dir: Path, base_url: str, user_id: str, dry: bool, meta: dict = None) -> str:
+    if (meta or {}).get("type") == "reel":
+        return publish_reel(post_dir, base_url, user_id, dry, meta)
     slides = sorted(p for p in post_dir.iterdir() if p.suffix in (".jpg", ".mp4"))
     if not 2 <= len(slides) <= 20:
         raise RuntimeError(f"{post_dir.name}: carousel needs 2-20 slides (jpg/mp4), found {len(slides)}")
@@ -125,7 +146,7 @@ def main():
     failed = False
     for meta_path, meta in due:
         try:
-            media_id = publish(meta_path.parent, base_url, user_id, dry)
+            media_id = publish(meta_path.parent, base_url, user_id, dry, meta)
             if not dry:
                 meta.update(status="published", media_id=media_id,
                             published_at=dt.datetime.now(dt.timezone.utc).isoformat())
