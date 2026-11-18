@@ -1,7 +1,9 @@
 {
   "type": "reel",
-  "status": "approved",
+  "status": "published",
   "publish_at": "2026-11-19T04:30:00+09:00",
   "approved_at": "2026-11-19T04:32:17+09:00",
-  "thumb_offset_ms": 500
+  "thumb_offset_ms": 500,
+  "media_id": "17899913394412490",
+  "published_at": "2026-11-18T19:39:20.144723+00:00"
 }
